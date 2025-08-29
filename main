@@ -1,0 +1,57 @@
+/*
+ * SPDX-FileCopyrightText: 2010-2022 Espressif Systems (Shanghai) CO LTD
+ *
+ * SPDX-License-Identifier: CC0-1.0
+ */
+
+#include <stdio.h>
+#include <inttypes.h>
+#include "sdkconfig.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "esp_chip_info.h"
+#include "esp_flash.h"
+#include "esp_system.h"
+
+SemaphoreHandle_t xSemaforo1;
+SemaphoreHandle_t xSemaforo2;
+SemaphoreHandle_t xSemaforo3;
+
+void vTask1(void *pvParameters) {
+    while (1) {
+        xSemaphoreTake(xSemaforo1, portMAX_DELAY);
+        printf("[Tarefa 1] Executou - ArturZ\n");
+        vTaskDelay(pdMS_TO_TICKS(1000));
+        xSemaphoreGive(xSemaforo2);
+    }
+}
+
+void vTask2(void *pvParameters) {
+    while (1) {
+        xSemaphoreTake(xSemaforo2, portMAX_DELAY);
+        printf("[Tarefa 2] Executou - ArturZ\n");
+        vTaskDelay(pdMS_TO_TICKS(1000));
+        xSemaphoreGive(xSemaforo3);
+    }
+}
+
+void vTask3(void *pvParameters) {
+    while (1) {
+        xSemaphoreTake(xSemaforo3, portMAX_DELAY);
+        printf("[Tarefa 3] Executou - ArturZ\n");
+        vTaskDelay(pdMS_TO_TICKS(1000));
+        xSemaphoreGive(xSemaforo1);
+    }
+}
+
+void app_main(void) {
+    xSemaforo1 = xSemaphoreCreateBinary();
+    xSemaforo2 = xSemaphoreCreateBinary();
+    xSemaforo3 = xSemaphoreCreateBinary();
+
+    xSemaphoreGive(xSemaforo1);
+
+    xTaskCreate(vTask1, "Tarefa1", 2048, NULL, 1, NULL);
+    xTaskCreate(vTask2, "Tarefa2", 2048, NULL, 1, NULL);
+    xTaskCreate(vTask3, "Tarefa3", 2048, NULL, 1, NULL);
+}
